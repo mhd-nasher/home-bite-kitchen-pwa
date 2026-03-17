@@ -2054,7 +2054,8 @@
     async function generateImage() {
       const output = document.getElementById('output-container');
       const placeholder = document.getElementById('output-placeholder');
-      const btn = document.getElementById('gen-btn') || document.getElementById('btn-generate');
+      const outputSection = document.getElementById('output-section');
+      const btn = document.getElementById('btn-generate');
       
       if (window.aistudio) {
         if (!(await window.aistudio.hasSelectedApiKey())) {
@@ -2063,20 +2064,22 @@
       }
 
       if (!dishBase64) {
-        const btnGen = document.getElementById('btn-generate');
-        btnGen.classList.add('shake');
-        setTimeout(() => btnGen.classList.remove('shake'), 300);
+        if (btn) btn.classList.add('shake');
+        setTimeout(() => btn && btn.classList.remove('shake'), 300);
         showToast('Please upload a dish photo first.');
         return;
       }
 
       // Premium Skeleton State
-      output.innerHTML = `
-        <div class="skeleton" style="width:100%; aspect-ratio:1; border-radius:12px; margin-bottom:16px;"></div>
-        <div class="skeleton" style="width:60%; height:20px; border-radius:4px; margin-bottom:8px;"></div>
-        <div class="skeleton" style="width:40%; height:14px; border-radius:4px;"></div>
-      `;
-      placeholder.style.display = 'none';
+      if (outputSection) outputSection.style.display = 'block';
+      if (output) {
+        output.innerHTML = `
+          <div class="skeleton" style="width:100%; aspect-ratio:1; border-radius:12px; margin-bottom:16px;"></div>
+          <div class="skeleton" style="width:60%; height:20px; border-radius:4px; margin-bottom:8px;"></div>
+          <div class="skeleton" style="width:40%; height:14px; border-radius:4px;"></div>
+        `;
+      }
+      if (placeholder) placeholder.style.display = 'none';
 
       let apiKey = localStorage.getItem('hbk_gemini_key');
       try {
