@@ -1,0 +1,2614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Bite Kitchen</title>
+  <meta name="description" content="Premium home food branding and cost calculator">
+  <meta name="theme-color" content="#f47c2c">
+  
+  <!-- iOS PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Home Bite">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-orange: #f47c2c;
+      --primary-light: #fff3e8;
+      --green-accent: #4caf50;
+      --white: #fafafa;
+      --gray-1: #dbdbdb;
+      --gray-2: #a0a0a0;
+      --gray-3: #5b5b5b;
+      --black: #000000;
+      --red-warning: #e53935;
+      --green-light: #eaf3de;
+      --red-light: #ffebee;
+      --font-black: 900;
+      --font-bold: 700;
+      --font-regular: 400;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: var(--font-regular);
+      color: var(--black);
+      background-color: var(--white);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none; /* Mobile app feel */
+    }
+
+    /* Typography */
+    .text-black { font-weight: var(--font-black); }
+    .text-bold { font-weight: var(--font-bold); }
+    .text-regular { font-weight: var(--font-regular); }
+    
+    /* Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      background-color: rgba(250, 250, 250, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--gray-1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      z-index: 100;
+    }
+    
+    @media (max-width: 600px) {
+      .navbar .nav-right .nav-pill { display: none; } /* Move to bottom bar */
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      color: var(--black);
+    }
+    .nav-dot {
+      width: 10px;
+      height: 10px;
+      background-color: var(--primary-orange);
+      border-radius: 50%;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav-pill {
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: var(--font-bold);
+      color: var(--gray-3);
+      transition: all 0.2s;
+    }
+    .nav-pill:hover {
+      background-color: var(--gray-1);
+    }
+    .nav-pill.active {
+      background-color: var(--primary-orange);
+      color: #fff;
+    }
+    .gear-icon {
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--gray-3);
+      transition: color 0.2s;
+    }
+    .gear-icon:hover {
+      color: var(--primary-orange);
+    }
+
+    /* Pages */
+    .page {
+      display: none;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 300ms ease, transform 300ms ease;
+      padding-bottom: 60px;
+    }
+    .page.active {
+      display: block;
+    }
+    .page.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Hero */
+    .hero {
+      background-color: var(--primary-light);
+      padding: 60px 24px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 48px;
+      margin: 0 0 16px 0;
+      color: var(--black);
+    }
+    .hero p {
+      font-size: 18px;
+      color: var(--gray-3);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    .hero-underline {
+      width: 80px;
+      height: 4px;
+      background-color: var(--primary-orange);
+      border-radius: 2px;
+      margin: 24px auto 0;
+    }
+
+    /* Bottom Tab Bar (Mobile Only) */
+    .bottom-tabs {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background-color: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--gray-1);
+      display: none;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 1000;
+    }
+
+    @media (max-width: 600px) {
+      .bottom-tabs { display: flex; }
+      body { padding-bottom: 80px; } /* Space for tab bar */
+      .page { padding-bottom: 100px; }
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-3);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 500;
+      flex: 1;
+      padding: 8px 0;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .tab-item.active {
+      color: var(--primary-orange);
+    }
+
+    .tab-item svg {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 4px;
+      transition: transform 0.2s;
+    }
+
+    .tab-item.active svg {
+      transform: scale(1.15);
+    }
+
+    /* Skeleton Loader */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: inherit;
+    }
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .segmented-control {
+      display: flex;
+      background-color: #efefef;
+      border-radius: 10px;
+      padding: 2px;
+      margin: 8px 0;
+    }
+    .segment {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-3);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .segment.active {
+      background-color: var(--white);
+      color: var(--black);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: scale(1.02);
+    }
+
+    /* Container */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Upload Section */
+    .upload-section {
+      display: flex;
+      gap: 24px;
+      margin-top: -30px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 768px) {
+      .upload-section { flex-direction: column; }
+    }
+    .upload-zone {
+      flex: 1;
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+    }
+    .upload-zone input[type="file"] {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer;
+      z-index: 5;
+    }
+    .zone-dish {
+      border: 2px dashed var(--primary-orange);
+      background-color: var(--primary-light);
+    }
+    .zone-ref {
+      border: 2px dashed var(--gray-1);
+      background-color: #fff;
+      transition: box-shadow 0.3s ease;
+    }
+    .zone-ref.auto-style-active {
+      animation: pulse-glow 2s infinite;
+    }
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 0 0px #f47c2c22; }
+      50% { box-shadow: 0 0 0 6px #f47c2c44; }
+      100% { box-shadow: 0 0 0 0px #f47c2c22; }
+    }
+    .upload-icon {
+      width: 32px; height: 32px;
+      margin-bottom: 12px;
+    }
+    .zone-dish .upload-icon { color: var(--primary-orange); }
+    .zone-ref .upload-icon { color: var(--gray-2); }
+    .upload-label {
+      font-size: 16px;
+      color: var(--black);
+      margin-bottom: 4px;
+    }
+    .upload-sublabel {
+      font-size: 14px;
+      color: var(--gray-2);
+    }
+    .preview-img {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      display: none;
+      z-index: 2;
+    }
+    .clear-btn {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 24px; height: 24px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    /* Settings Panel */
+    .settings-panel {
+      background: #fff;
+      border: 1px solid var(--gray-1);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      color: var(--black);
+      margin-bottom: 8px;
+    }
+    textarea, input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gray-1);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--black);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
+      border-color: var(--primary-orange);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Format Selector */
+    .format-selector {
+      display: flex;
+      gap: 12px;
+    }
+    .format-btn {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--gray-1);
+      background: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--gray-3);
+      transition: all 0.2s;
+    }
+    .format-btn.active {
+      background: var(--primary-orange);
+      border-color: var(--primary-orange);
+      color: #fff;
+      font-weight: var(--font-bold);
+    }
+    .format-preview {
+      border: 2px solid currentColor;
+      border-radius: 4px;
+    }
+    .format-1-1 .format-preview { width: 24px; height: 24px; }
+    .format-3-4 .format-preview { width: 20px; height: 26px; }
+    .format-9-16 .format-preview { width: 16px; height: 28px; }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--gray-1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 20px; height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .toggle-switch.on {
+      background: var(--primary-orange);
+    }
+    .toggle-switch.on::after {
+      transform: translateX(20px);
+    }
+
+    /* Sub Panel */
+    .sub-panel {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--white);
+      border-radius: 10px;
+      display: none;
+    }
+    .sub-panel.visible {
+      display: block;
+    }
+    .color-swatch {
+      width: 24px; height: 24px;
+      background: var(--primary-orange);
+      border-radius: 4px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--primary-orange);
+    }
+    .pill-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--gray-1);
+      border-radius: 16px;
+      background: #fff;
+      color: var(--gray-3);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .pill-btn.active {
+      background: var(--black);
+      color: #fff;
+      border-color: var(--black);
+    }
+
+    /* Generate Button */
+    .generate-btn {
+      width: 100%;
+      height: 56px;
+      background: var(--primary-orange);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .generate-btn:hover:not(:disabled) {
+      background: #d96a1f;
+    }
+    .generate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    .shake { animation: shake 0.3s; }
+
+    /* Output Section */
+    .output-section {
+      margin-top: 32px;
+      background: #fff;
+      border-top: 4px solid var(--primary-orange);
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 24px;
+      display: none;
+      position: relative;
+    }
+    .output-section.visible {
+      display: block;
+    }
+    .output-image-container {
+      width: 100%;
+      background: var(--white);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .output-image {
+      max-width: 100%;
+      max-height: 600px;
+      object-fit: contain;
+    }
+    .output-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-download {
+      flex: 1;
+      padding: 12px;
+      background: var(--black);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-regenerate {
+      flex: 1;
+      padding: 12px;
+      background: #fff;
+      color: var(--primary-orange);
+      border: 1px solid var(--primary-orange);
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .format-badge {
+      position: absolute;
+      top: 36px; right: 36px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* Cost Calculator */
+    .page-header {
+      text-align: center;
+      padding: 40px 24px;
+    }
+    .page-header h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+    .page-header p {
+      color: var(--gray-3);
+    }
+    .table-container {
+      background: #fff;
+      border: 1px solid var(--gray-1);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .calc-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 500px;
+    }
+    .calc-table th {
+      text-align: left;
+      color: var(--gray-2);
+      font-size: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--gray-1);
+    }
+    .calc-table td {
+      padding: 12px 8px 12px 0;
+    }
+    .calc-table input {
+      width: 100%;
+      padding: 8px;
+    }
+    .row-cost {
+      color: var(--primary-orange);
+      font-weight: var(--font-bold);
+    }
+    .btn-delete {
+      background: none;
+      border: none;
+      color: var(--gray-2);
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .btn-delete:hover { color: var(--red-warning); }
+    .btn-add {
+      background: none;
+      border: none;
+      color: var(--primary-orange);
+      cursor: pointer;
+      padding: 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .fixed-costs {
+      border-left: 4px solid var(--primary-orange);
+    }
+    .fixed-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .fixed-row:last-child { margin-bottom: 0; }
+    .fixed-row input { width: 100px; }
+
+    .slider-section {
+      background: #fff;
+      border: 1px solid var(--gray-1);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .price-display {
+      font-size: 32px;
+      color: var(--black);
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .result-card {
+      background: #fff;
+      border: 1px solid var(--gray-1);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .result-card.highlight {
+      border-color: var(--primary-orange);
+    }
+    .result-label {
+      font-size: 12px;
+      color: var(--gray-2);
+      margin-bottom: 4px;
+    }
+    .result-value {
+      font-size: 22px;
+    }
+    .text-green { color: var(--green-accent); }
+    .text-red { color: var(--red-warning); }
+
+    .ratio-bar-container {
+      margin-bottom: 16px;
+    }
+    .ratio-bar-bg {
+      height: 8px;
+      background: var(--gray-1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .ratio-bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s, background-color 0.3s;
+    }
+    .ratio-label {
+      text-align: right;
+      font-size: 14px;
+      font-weight: var(--font-bold);
+    }
+
+    .status-message {
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .status-good { background: var(--green-light); color: var(--green-accent); }
+    .status-ok { background: var(--primary-light); color: var(--primary-orange); }
+    .status-bad { background: var(--red-light); color: var(--red-warning); }
+
+    .footer-note {
+      text-align: center;
+      color: var(--gray-2);
+      font-size: 12px;
+    }
+
+    /* Drawer */
+    .drawer-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.3);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .drawer-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .drawer {
+      position: fixed;
+      top: 0; right: -320px;
+      width: 320px; height: 100%;
+      background: #fff;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.1);
+      z-index: 201;
+      padding: 24px;
+      transition: transform 0.3s;
+    }
+    .drawer.visible {
+      transform: translateX(-320px);
+    }
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .drawer-close {
+      cursor: pointer;
+      font-size: 24px;
+      color: var(--gray-2);
+    }
+    .btn-save {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary-orange);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 16px;
+      font-weight: var(--font-bold);
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .dot.green { background: var(--green-accent); }
+    .dot.red { background: var(--red-warning); }
+
+    /* Toasts */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 300;
+    }
+    .toast {
+      background: var(--black);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border-left: 4px solid var(--primary-orange);
+      font-weight: var(--font-bold);
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+    }
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Veo 3 Styles */
+    .veo-btn {
+      width: 100%;
+      height: 52px;
+      background: #000000;
+      color: #ffffff;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+      transition: background 0.3s;
+    }
+    .veo-btn:hover {
+      background: #1a1a1a;
+    }
+    .veo-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary-orange);
+      border-radius: 50%;
+      animation: pulse-orange 2s infinite;
+    }
+    @keyframes pulse-orange {
+      0% { box-shadow: 0 0 0 0 rgba(244, 124, 44, 0.7); }
+      70% { box-shadow: 0 0 0 6px rgba(244, 124, 44, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(244, 124, 44, 0); }
+    }
+    .veo-btn.loading {
+      background: linear-gradient(90deg, #000 25%, #222 50%, #000 75%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite linear;
+      cursor: not-allowed;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .veo-progress-card {
+      width: 100%;
+      background: #fff;
+      border: 1px solid var(--gray-1);
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+    .veo-progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: var(--gray-1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .veo-progress-bar {
+      width: 30%;
+      height: 100%;
+      background: var(--primary-orange);
+      border-radius: 3px;
+      animation: progress-pulse 2s infinite ease-in-out;
+    }
+    @keyframes progress-pulse {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(400%); }
+    }
+    .veo-status {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 400;
+      color: #5b5b5b;
+      font-size: 14px;
+    }
+    .veo-timer {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      color: var(--black);
+      font-size: 14px;
+    }
+    .veo-cancel {
+      background: none;
+      border: none;
+      color: #a0a0a0;
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 400;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .veo-cancel:hover {
+      color: var(--red-warning);
+    }
+    .veo-output-section {
+      width: 100%;
+      margin-top: 24px;
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--gray-1);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .veo-video {
+      width: 100%;
+      border-radius: 12px;
+      background: #000;
+    }
+    .veo-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .veo-control-btn {
+      background: #fff;
+      border: 1px solid var(--gray-1);
+      color: var(--primary-orange);
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .veo-control-btn:hover {
+      background: #fff3e8;
+    }
+    .veo-badge {
+      position: absolute;
+      top: 28px;
+      right: 28px;
+      background: #000;
+      color: #fff;
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      z-index: 10;
+    }
+    .veo-note {
+      text-align: center;
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 400;
+      font-style: italic;
+      color: #a0a0a0;
+      font-size: 12px;
+    }
+
+    /* Quick Calc Page */
+    #page-quick-calc {
+      display: none;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 300ms ease, transform 300ms ease;
+    }
+    #page-quick-calc.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 65px);
+      background-color: #fff3e8;
+      padding: 24px;
+    }
+    #page-quick-calc.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .qc-card {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 24px;
+      border: 1px solid #dbdbdb;
+      padding: 32px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+    }
+    .qc-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .qc-title {
+      font-weight: var(--font-black);
+      font-size: 24px;
+      margin: 0 0 8px 0;
+      color: var(--black);
+    }
+    .qc-subtitle {
+      font-size: 13px;
+      color: #a0a0a0;
+      margin: 0;
+    }
+    .qc-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .qc-field label {
+      display: block;
+      font-size: 14px;
+      font-weight: var(--font-bold);
+      margin-bottom: 8px;
+      color: var(--black);
+    }
+    .qc-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .qc-prefix {
+      position: absolute;
+      left: 16px;
+      color: #a0a0a0;
+      font-weight: var(--font-bold);
+      font-size: 20px;
+    }
+    .qc-input-wrapper input {
+      width: 100%;
+      height: 52px;
+      border-radius: 14px;
+      border: 1px solid #dbdbdb;
+      padding: 0 16px 0 36px;
+      font-family: 'Satoshi', sans-serif;
+      font-weight: var(--font-bold);
+      font-size: 20px;
+      color: var(--black);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .qc-input-wrapper input:focus {
+      border-color: var(--primary-orange);
+    }
+    .qc-results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .qc-metric {
+      background: #fff;
+      border: 1px solid #dbdbdb;
+      border-radius: 16px;
+      padding: 16px;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    @keyframes popAnim {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+    .qc-metric.pop {
+      animation: popAnim 0.25s ease;
+    }
+    .qc-metric-label {
+      font-size: 12px;
+      color: #a0a0a0;
+      margin-bottom: 4px;
+      font-weight: var(--font-bold);
+    }
+    .qc-metric-value {
+      font-size: 20px;
+      font-weight: var(--font-bold);
+      color: var(--black);
+    }
+    .qc-metric-sub {
+      font-size: 10px;
+      color: #a0a0a0;
+      margin-top: 4px;
+    }
+    .qc-bar-container {
+      margin-bottom: 24px;
+    }
+    .qc-bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: var(--font-bold);
+      color: #a0a0a0;
+      margin-bottom: 8px;
+    }
+    .qc-bar-track {
+      height: 8px;
+      background: #dbdbdb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .qc-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--primary-orange);
+      border-radius: 4px;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    .qc-status {
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #f9f9f9;
+      color: #a0a0a0;
+      line-height: 1.4;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .qc-footer {
+      text-align: center;
+      font-size: 12px;
+      color: #a0a0a0;
+      margin-top: 24px;
+    }
+    .qc-link {
+      color: var(--primary-orange);
+      font-weight: var(--font-bold);
+      cursor: pointer;
+    }
+    .qc-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <div class="nav-dot"></div>
+      <span class="text-black">Home Bite Kitchen</span>
+    </div>
+    <div class="nav-right">
+      <div class="nav-pill text-bold active" data-target="page-ai" onclick="switchPage('page-ai')">AI Studio</div>
+      <div class="nav-pill text-bold" data-target="page-quick-calc" onclick="switchPage('page-quick-calc')">Quick Calc</div>
+      <div class="nav-pill text-bold" data-target="page-calc" onclick="switchPage('page-calc')">Cost Calculator</div>
+      <div class="gear-icon" onclick="toggleDrawer(true)">⚙</div>
+    </div>
+  </nav>
+
+  <!-- Page 1: AI Studio -->
+  <div id="page-ai" class="page active visible">
+    <div class="hero">
+      <h1 class="text-black">Turn Your Dish Into a Story</h1>
+      <p class="text-regular">Upload your food photo, add a style reference, and let AI create professional Instagram-ready imagery — branded for Home Bite Kitchen.</p>
+      <div class="hero-underline"></div>
+    </div>
+
+    <div class="container">
+      <div class="upload-section">
+        <div class="upload-zone zone-dish" id="zone-dish">
+          <input type="file" id="input-dish" accept="image/*">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <div class="upload-label text-bold">Upload your dish photo</div>
+          <div class="upload-sublabel text-regular">The food you want to style</div>
+          <img id="preview-dish" class="preview-img" alt="Dish preview">
+          <button class="clear-btn" id="clear-dish" onclick="clearUpload('dish', event)">×</button>
+        </div>
+        <div class="upload-zone zone-ref" id="zone-ref">
+          <input type="file" id="input-ref" accept="image/*">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          <div class="upload-label text-bold">Upload style reference</div>
+          <div class="upload-sublabel text-regular">Optional — mood, lighting, aesthetic</div>
+          <img id="preview-ref" class="preview-img" alt="Reference preview">
+          <button class="clear-btn" id="clear-ref" onclick="clearUpload('ref', event)">×</button>
+        </div>
+      </div>
+
+      <div class="settings-panel">
+        <div class="form-group">
+          <label class="form-label text-bold">Describe the vibe</label>
+          <textarea id="prompt-input" placeholder="e.g. warm golden hour, rustic wooden table, moody shadows, dark background"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label text-bold">Instagram format</label>
+          <div class="segmented-control">
+            <div class="segment active" data-format="1:1" onclick="setFormat('1:1')">Post 1:1</div>
+            <div class="segment" data-format="3:4" onclick="setFormat('3:4')">Portrait 3:4</div>
+            <div class="segment" data-format="9:16" onclick="setFormat('9:16')">Story 9:16</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="toggle-row">
+            <label class="form-label text-bold" style="margin:0;">Add Home Bite Kitchen branding</label>
+            <div class="toggle-switch" id="brand-toggle" onclick="toggleBrand()"></div>
+          </div>
+          <div class="sub-panel" id="brand-panel">
+            <div class="form-group">
+              <label class="form-label text-bold">Brand color</label>
+              <div><div class="color-swatch"></div> <span class="text-regular" style="color:var(--gray-3)">#f47c2c</span></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label text-bold">Brand tagline on image</label>
+              <input type="text" id="brand-tagline" value="Home Bite Kitchen">
+            </div>
+            <div class="form-group">
+              <label class="form-label text-bold">Watermark opacity: <span id="opacity-val">30%</span></label>
+              <div class="slider-container">
+                <input type="range" id="brand-opacity" min="10" max="60" value="30" oninput="document.getElementById('opacity-val').innerText = this.value + '%'">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label text-bold">Position</label>
+              <div class="pill-group" id="pos-group">
+                <div class="pill-btn active" data-pos="bottom-left" onclick="setPos('bottom-left')">Bottom-left</div>
+                <div class="pill-btn" data-pos="bottom-center" onclick="setPos('bottom-center')">Bottom-center</div>
+                <div class="pill-btn" data-pos="bottom-right" onclick="setPos('bottom-right')">Bottom-right</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label text-bold">Quality</label>
+          <div class="pill-group" id="quality-group">
+            <div class="pill-btn" data-quality="Draft" onclick="setQuality('Draft')" title="Fast generation, lower detail">Draft</div>
+            <div class="pill-btn active" data-quality="Standard" onclick="setQuality('Standard')" title="Balanced quality and speed">Standard</div>
+            <div class="pill-btn" data-quality="Premium" onclick="setQuality('Premium')" title="Highest detail, slower generation">Premium</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="generate-btn text-black" id="btn-generate" onclick="generateImage()">
+        <div class="spinner" id="gen-spinner"></div>
+        <span id="gen-text">Generate Image →</span>
+      </button>
+      
+      <div id="auto-style-badge" style="display: none; margin: 12px auto 0; text-align: center; width: fit-content; padding: 6px 16px; border-radius: 999px; background: #fff3e8; border: 1px solid #f47c2c; color: #f47c2c; font-weight: var(--font-bold); font-size: 12px; opacity: 0; transition: opacity 0.5s ease;">
+        ✦ Auto Style: <span id="auto-style-name"></span> — Warm Edition
+      </div>
+
+      <div class="output-section" id="output-section">
+        <div class="format-badge text-bold" id="output-badge">1:1 Post</div>
+        <div class="output-image-container" id="output-container">
+          <img id="output-img" class="output-image" alt="Generated Image">
+        </div>
+        <div class="output-actions">
+          <button class="btn-download text-bold" onclick="downloadImage()">Download</button>
+          <button class="btn-regenerate text-bold" onclick="generateImage()">Regenerate</button>
+        </div>
+      </div>
+
+      <!-- Veo 3 Button -->
+      <button id="veo-btn" class="veo-btn" style="display: none;" onclick="animateWithVeo()">
+        <div class="veo-dot" id="veo-btn-dot"></div>
+        <span id="veo-btn-text">Animate with Veo 3 ✦</span>
+      </button>
+
+      <!-- Veo Progress UI -->
+      <div id="veo-progress-card" class="veo-progress-card" style="display: none;">
+        <div class="veo-progress-bar-container">
+          <div class="veo-progress-bar"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+          <span id="veo-status" class="veo-status">Analysing your dish...</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span id="veo-timer" class="veo-timer">0:00</span>
+            <button class="veo-cancel" onclick="cancelVeo()">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Veo Video Output -->
+      <div id="veo-output-section" class="veo-output-section" style="display: none;">
+        <div class="veo-badge">Veo 3 ✦</div>
+        <video id="veo-video" class="veo-video" autoplay loop muted playsinline></video>
+        <div class="veo-controls">
+          <button class="veo-control-btn" id="veo-play-btn" onclick="toggleVeoPlay()">⏸ Pause</button>
+          <button class="veo-control-btn" id="veo-loop-btn" onclick="toggleVeoLoop()">🔁 Loop</button>
+          <button class="veo-control-btn" onclick="downloadVeo()">⬇ Download MP4</button>
+        </div>
+        <div class="veo-note">8-second loop — ready for Instagram Reels & Stories</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2: Cost Calculator -->
+  <div id="page-calc" class="page">
+    <div class="page-header" style="text-align: left; padding: 24px 20px 8px;">
+      <h2 class="text-black" style="font-size: 28px; margin-bottom: 4px;">Cost Calculator</h2>
+      <p style="color: var(--gray-3); font-size: 14px;">Detailed breakdown of your dish costs</p>
+    </div>
+
+    <div class="container">
+      <div class="card mb-6" style="padding: 0; overflow: hidden; border-radius: 20px;">
+        <div style="background: #f8f8f8; padding: 12px 16px; border-bottom: 1px solid var(--gray-1); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--gray-3);">Ingredients</span>
+          <button class="text-orange" onclick="addIngredientRow()" style="font-size: 13px; font-weight: 600; background:none; border:none; padding:4px 8px;">+ Add row</button>
+        </div>
+        <div style="padding: 8px 16px;">
+          <div id="ingredients-container">
+            <div id="ingredients-body" style="display: flex; flex-direction: column; gap: 12px; padding: 12px 0;">
+              <!-- Dynamic rows will be injected here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-6" style="padding: 24px; border-radius: 20px;">
+        <h3 style="font-size: 16px; margin-bottom: 16px; font-weight: 700;">Fixed Costs</h3>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; color: var(--gray-3);">Packaging</span>
+            <div style="position:relative; width: 100px;">
+               <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-weight:600; font-size:14px;">£</span>
+               <input type="number" id="cost-packaging" value="0.50" step="0.1" oninput="calculateCosts()" style="width:100%; padding: 8px 8px 8px 20px; border-radius: 10px; font-weight: 600; font-size: 15px; border: 1px solid var(--gray-1);">
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; color: var(--gray-3);">Energy & Gas</span>
+            <div style="position:relative; width: 100px;">
+               <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-weight:600; font-size:14px;">£</span>
+               <input type="number" id="cost-energy" value="0.20" step="0.1" oninput="calculateCosts()" style="width:100%; padding: 8px 8px 8px 20px; border-radius: 10px; font-weight: 600; font-size: 15px; border: 1px solid var(--gray-1);">
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; color: var(--gray-3);">Platform Fees</span>
+            <div style="position:relative; width: 100px;">
+               <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-weight:600; font-size:14px;">£</span>
+               <input type="number" id="cost-delivery" value="0.00" step="0.1" oninput="calculateCosts()" style="width:100%; padding: 8px 8px 8px 20px; border-radius: 10px; font-weight: 600; font-size: 15px; border: 1px solid var(--gray-1);">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+        <div class="card" style="padding:16px; border-radius:16px; background:var(--primary-light); border:1px solid #f47c2c33;">
+          <span style="font-size:12px; color:var(--gray-3); display:block; margin-bottom:4px;">Total Cost</span>
+          <span class="text-black" id="res-total" style="font-size:20px; font-weight:700;">£2.70</span>
+        </div>
+        <div class="card" style="padding:16px; border-radius:16px; background:#f0f9f1; border:1px solid #ccebd2;">
+          <span style="font-size:12px; color:var(--gray-3); display:block; margin-bottom:4px;">Net Profit</span>
+          <span id="res-profit" style="font-size:20px; font-weight:700; color: #2e7d32;">£12.30</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3: Quick Calc -->
+  <div id="page-quick-calc" class="page">
+    <div class="page-header" style="text-align: left; padding: 24px 20px 8px;">
+      <h2 class="text-black" style="font-size: 28px; margin-bottom: 4px;">Quick Calc</h2>
+      <p style="color: var(--gray-3); font-size: 14px;">Instant profit & margin check</p>
+    </div>
+    
+    <div class="container">
+      <div class="card mb-6" style="padding: 24px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="display: flex; gap: 16px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label text-bold" style="font-size: 13px; color: var(--gray-3);">Cost per dish</label>
+            <div style="position:relative;">
+              <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:700;">£</span>
+              <input type="number" id="qc-cost" value="2.50" step="0.10" oninput="updateQuickCalc()" style="padding-left:28px; font-size:18px; font-weight:700; border-radius:12px; height:54px;">
+            </div>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label text-bold" style="font-size: 13px; color: var(--gray-3);">Selling price</label>
+            <div style="position:relative;">
+              <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:700;">£</span>
+              <input type="number" id="qc-price" value="10.00" step="0.50" oninput="updateQuickCalc()" style="padding-left:28px; font-size:18px; font-weight:700; border-radius:12px; height:54px;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+        <div class="card qc-metric" id="qc-card-profit" style="padding:16px; border-radius:16px; background:#fff; border:1px solid var(--gray-1);">
+          <span style="font-size:12px; color:var(--gray-3); display:block; margin-bottom:4px;">Profit</span>
+          <span class="text-black" id="qc-val-profit" style="font-size:20px;">£7.50</span>
+        </div>
+        <div class="card qc-metric" id="qc-card-margin" style="padding:16px; border-radius:16px; background:#fff; border:1px solid var(--gray-1);">
+          <span style="font-size:12px; color:var(--gray-3); display:block; margin-bottom:4px;">Margin</span>
+          <span class="text-black" id="qc-val-margin" style="font-size:20px;">75%</span>
+        </div>
+      </div>
+
+      <div class="card mb-6" style="padding: 20px; border-radius: 16px; background:#fff; border:1px solid var(--gray-1);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+          <span class="text-bold" style="font-size:14px;">Cost ratio</span>
+          <span id="qc-bar-label" class="text-black" style="font-size:14px;">25%</span>
+        </div>
+        <div style="height:8px; background:#efefef; border-radius:4px; overflow:hidden;">
+          <div id="qc-bar-fill" style="width:25%; height:100%; background:var(--primary-orange); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+        </div>
+        <div id="qc-status" style="margin-top:16px; font-size:13px; color:var(--gray-3); padding:10px; border-radius:8px; line-height:1.4;">
+           Calculating your success...
+        </div>
+      </div>
+      
+      <div class="card" style="padding:16px; border-radius:16px; background:var(--primary-light); border:1px solid #f47c2c33; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:14px; color:var(--gray-3);">Monthly potential</span>
+        <span class="text-black" id="qc-val-monthly" style="font-size:18px;">£750</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Drawer -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer(false)"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <h2 class="text-black" style="font-size:24px;">API Settings</h2>
+      <div class="drawer-close" onclick="toggleDrawer(false)">×</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label text-bold">Gemini API Key</label>
+      <input type="password" id="api-key-input" placeholder="AIzaSy...">
+    </div>
+    <div class="form-group" style="margin-top: 16px;">
+      <label class="form-label text-bold" style="color: #a0a0a0; font-size: 14px;">Video Generation</label>
+      <p style="font-size: 12px; color: var(--gray-2); margin-top: 4px; margin-bottom: 8px;">Uses the same API key for Veo 3 access. Ensure your Google Cloud project has Veo 3 enabled.</p>
+      <a href="https://aistudio.google.com/" target="_blank" style="font-size: 12px; color: var(--primary-orange); text-decoration: none;">Check Veo 3 access ↗</a>
+    </div>
+    <button class="btn-save" onclick="saveApiKey()">Save Settings</button>
+    <div class="status-indicator">
+      <div class="dot red" id="api-status-dot"></div>
+      <span id="api-status-text">Not set</span>
+    </div>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="bottom-tabs">
+    <div class="tab-item active" onclick="switchPage('page-ai')" id="tab-ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+      <span>Studio</span>
+    </div>
+    <div class="tab-item" onclick="switchPage('page-quick-calc')" id="tab-quick-calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="8" x2="16" y1="10" y2="10"/><line x1="10" x2="10" y1="14" y2="18"/><line x1="8" x2="12" y1="16" y2="16"/></svg>
+      <span>Quick</span>
+    </div>
+    <div class="tab-item" onclick="switchPage('page-calc')" id="tab-calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>Calculator</span>
+    </div>
+    <div class="tab-item" onclick="toggleDrawer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </div>
+  </div>
+
+  <!-- Hidden Canvas for Watermarking -->
+  <canvas id="watermark-canvas" style="display:none;"></canvas>
+
+  <script type="module">
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(reg => console.log('SW registered:', reg))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+
+    try {
+      window.INJECTED_API_KEY = process.env.API_KEY;
+    } catch (e) {
+      window.INJECTED_API_KEY = null;
+    }
+  </script>
+
+  <script type="module">
+    import { GoogleGenAI } from "@google/genai";
+
+    window.animateWithVeo = async function() {
+      if (window.aistudio) {
+        if (!(await window.aistudio.hasSelectedApiKey())) {
+          await window.aistudio.openSelectKey();
+        }
+      }
+
+      let apiKey = localStorage.getItem('hbk_gemini_key');
+      try {
+        if (window.INJECTED_API_KEY && window.INJECTED_API_KEY !== 'undefined') {
+          apiKey = window.INJECTED_API_KEY;
+        } else if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+          apiKey = process.env.API_KEY;
+        }
+      } catch (e) {}
+      
+      if (!apiKey) {
+        apiKey = 'AIzaSyCA_lJLpT_GO2uWv0UoF9sviPWqNuFw4i4';
+      }
+
+      if (!apiKey || apiKey === 'AIzaSyCA_lJLpT_GO2uWv0UoF9sviPWqNuFw4i4') {
+        window.showToast('Please set your API key in settings first');
+        window.toggleDrawer(true);
+        return;
+      }
+
+      const imgElement = document.getElementById('output-img');
+      if (!imgElement.src || !imgElement.src.startsWith('data:image/')) {
+        window.showToast('No image to animate');
+        return;
+      }
+
+      const base64Data = imgElement.src.split(',')[1];
+      const styleName = document.getElementById('auto-style-name').innerText || "Warm Food Photography";
+      const prompt = window.buildAnimationPrompt(styleName);
+
+      document.getElementById('veo-btn').style.display = 'none';
+      document.getElementById('veo-progress-card').style.display = 'block';
+      document.getElementById('veo-output-section').style.display = 'none';
+      
+      window.veoStartTime = Date.now();
+      window.updateVeoTimer();
+      window.veoTimerInterval = setInterval(window.updateVeoTimer, 1000);
+      
+      let msgIndex = 0;
+      window.msgInterval = setInterval(() => {
+        msgIndex = (msgIndex + 1) % window.VEO_MESSAGES.length;
+        document.getElementById('veo-status').innerText = window.VEO_MESSAGES[msgIndex];
+      }, 5000);
+
+      try {
+        const ai = new GoogleGenAI({ apiKey: apiKey });
+        
+        let operation = await ai.models.generateVideos({
+          model: 'veo-3.1-fast-generate-preview',
+          prompt: prompt,
+          image: {
+            imageBytes: base64Data,
+            mimeType: 'image/png',
+          },
+          config: {
+            numberOfVideos: 1,
+            resolution: '720p',
+            aspectRatio: (window.currentFormat === '9:16' || window.currentFormat === '3:4') ? '9:16' : '16:9' // Veo 3.1 only supports 16:9 or 9:16
+          }
+        });
+
+        window.veoPollInterval = setInterval(async () => {
+          try {
+            operation = await ai.operations.getVideosOperation({operation: operation});
+            
+            if (operation.done) {
+              clearInterval(window.veoPollInterval);
+              clearInterval(window.veoTimerInterval);
+              clearInterval(window.msgInterval);
+              
+              if (operation.error) {
+                throw new Error(operation.error.message || "Animation failed");
+              }
+              
+              const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+              if (!downloadLink) {
+                throw new Error("No video URL returned");
+              }
+
+              const videoResponse = await fetch(downloadLink, {
+                method: 'GET',
+                headers: {
+                  'x-goog-api-key': apiKey,
+                },
+              });
+              
+              if (!videoResponse.ok) {
+                throw new Error("Failed to download video from URI");
+              }
+              
+              const videoBlob = await videoResponse.blob();
+              const videoObjectUrl = URL.createObjectURL(videoBlob);
+              
+              window.veoVideoUrl = videoObjectUrl;
+              window.showVideo(videoObjectUrl);
+            }
+          } catch (pollErr) {
+            console.error("Polling error:", pollErr);
+            // Don't clear interval on network errors, might be transient
+            if (pollErr.message && pollErr.message.includes('permission')) {
+               clearInterval(window.veoPollInterval);
+               clearInterval(window.veoTimerInterval);
+               clearInterval(window.msgInterval);
+               window.showToast("Permission error. Check API key.");
+               window.cancelVeo();
+            }
+          }
+        }, 10000); // Poll every 10 seconds
+
+      } catch (err) {
+        console.error("Veo Error:", err);
+        clearInterval(window.veoTimerInterval);
+        clearInterval(window.msgInterval);
+        
+        if (err.message?.includes('region') || err.message?.includes('not found')) {
+          window.showToast("Veo 3.1 is currently available in limited regions.");
+        } else {
+          window.showToast(err.message || 'Failed to start animation');
+        }
+        window.cancelVeo();
+      }
+    };
+  </script>
+
+  <script>
+    // Ensure process.env is defined for browser safety
+    window.process = window.process || { env: {} };
+    
+    // --- State ---
+    var currentFormat = '1:1';
+    var brandEnabled = false;
+    var brandPos = 'bottom-left';
+    var dishBase64 = null;
+    var refBase64 = null;
+    var generatedImageBase64 = null;
+
+    // --- Quick Calc Logic ---
+    let qcLastValues = { profit: null, margin: null, ratio: null, monthly: null };
+
+    window.updateQuickCalc = function() {
+      const costInput = document.getElementById('qc-cost').value;
+      const priceInput = document.getElementById('qc-price').value;
+      
+      const cost = parseFloat(costInput);
+      const price = parseFloat(priceInput);
+
+      const profitCard = document.getElementById('qc-card-profit');
+      const marginCard = document.getElementById('qc-card-margin');
+      const ratioCard = document.getElementById('qc-card-ratio');
+      const monthlyCard = document.getElementById('qc-card-monthly');
+
+      const barFill = document.getElementById('qc-bar-fill');
+      const barLabel = document.getElementById('qc-bar-label');
+      const statusEl = document.getElementById('qc-status');
+
+      function animateValueChange(elementId, newValue, key) {
+        const el = document.getElementById(elementId);
+        if (qcLastValues[key] !== newValue) {
+          qcLastValues[key] = newValue;
+          el.innerText = newValue;
+          const card = el.closest('.qc-metric');
+          if (card) {
+            card.classList.remove('pop');
+            void card.offsetWidth; // trigger reflow
+            card.classList.add('pop');
+          }
+        }
+      }
+
+      if (isNaN(cost) || isNaN(price) || price <= 0) {
+        // Reset
+        animateValueChange('qc-val-profit', '£0.00', 'profit');
+        animateValueChange('qc-val-margin', '0%', 'margin');
+        animateValueChange('qc-val-ratio', '0%', 'ratio');
+        animateValueChange('qc-val-monthly', '£0.00', 'monthly');
+
+        profitCard.style.borderColor = '#dbdbdb';
+        profitCard.style.backgroundColor = '#fff';
+        document.getElementById('qc-val-profit').style.color = 'var(--black)';
+
+        document.getElementById('qc-val-margin').style.color = 'var(--black)';
+        document.getElementById('qc-val-monthly').style.color = 'var(--black)';
+
+        barFill.style.width = '0%';
+        barLabel.innerText = '0%';
+        barLabel.style.color = '#a0a0a0';
+        
+        statusEl.innerText = 'Enter numbers to see your margin status.';
+        statusEl.style.backgroundColor = '#f9f9f9';
+        statusEl.style.color = '#a0a0a0';
+        return;
+      }
+
+      const profit = price - cost;
+      const margin = (profit / price) * 100;
+      const ratio = (cost / price) * 100;
+      const monthly = profit * 20 * 26;
+
+      // Card 1: Profit
+      const profitStr = (profit < 0 ? '-' : '') + '£' + Math.abs(profit).toFixed(2);
+      animateValueChange('qc-val-profit', profitStr, 'profit');
+      
+      if (profit > 0) {
+        document.getElementById('qc-val-profit').style.color = '#f47c2c';
+        profitCard.style.borderColor = '#f47c2c';
+        profitCard.style.backgroundColor = '#fff3e8';
+      } else if (profit < 0) {
+        document.getElementById('qc-val-profit').style.color = '#e53935';
+        profitCard.style.borderColor = '#e53935';
+        profitCard.style.backgroundColor = '#fdecea';
+      } else {
+        document.getElementById('qc-val-profit').style.color = 'var(--black)';
+        profitCard.style.borderColor = '#dbdbdb';
+        profitCard.style.backgroundColor = '#fff';
+      }
+
+      // Card 2: Margin
+      animateValueChange('qc-val-margin', margin.toFixed(0) + '%', 'margin');
+      const marginValEl = document.getElementById('qc-val-margin');
+      if (margin >= 60) marginValEl.style.color = '#4caf50';
+      else if (margin >= 40) marginValEl.style.color = '#f47c2c';
+      else marginValEl.style.color = '#e53935';
+
+      // Card 3: Cost ratio
+      animateValueChange('qc-val-ratio', ratio.toFixed(0) + '%', 'ratio');
+
+      // Card 4: Monthly
+      const monthlyStr = (monthly < 0 ? '-' : '') + '£' + Math.abs(monthly).toFixed(2);
+      animateValueChange('qc-val-monthly', monthlyStr, 'monthly');
+      const monthlyValEl = document.getElementById('qc-val-monthly');
+      if (monthly > 0) monthlyValEl.style.color = '#4caf50';
+      else if (monthly < 0) monthlyValEl.style.color = '#e53935';
+      else monthlyValEl.style.color = 'var(--black)';
+
+      // Bar
+      let barWidth = ratio;
+      if (barWidth > 100) barWidth = 100;
+      if (barWidth < 0) barWidth = 0;
+      barFill.style.width = barWidth + '%';
+      barLabel.innerText = ratio.toFixed(0) + '%';
+
+      let barColor = '';
+      if (ratio <= 40) barColor = '#4caf50';
+      else if (ratio <= 60) barColor = '#f47c2c';
+      else barColor = '#e53935';
+      
+      barFill.style.backgroundColor = barColor;
+      barLabel.style.color = barColor;
+
+      // Status message
+      if (ratio <= 40) {
+        const marginPence = Math.round(margin);
+        statusEl.innerText = `Great margin — you keep ${marginPence}p of every £1 sold.`;
+        statusEl.style.backgroundColor = '#eaf3de';
+        statusEl.style.color = '#27500a';
+      } else if (ratio <= 60) {
+        const gap = (cost / 0.35) - price;
+        statusEl.innerText = `Tight margin. Raise your price by £${gap.toFixed(2)} to hit a healthy 65% margin.`;
+        statusEl.style.backgroundColor = '#fff3e8';
+        statusEl.style.color = '#7a3a10';
+      } else if (profit < 0) {
+        statusEl.innerText = `You're selling at a loss of £${Math.abs(profit).toFixed(2)} per dish. Fix your price immediately.`;
+        statusEl.style.backgroundColor = '#fdecea';
+        statusEl.style.color = '#7f1d1d';
+      } else {
+        const minPrice = cost / 0.35;
+        statusEl.innerText = `Cost too high. Minimum price for a healthy margin: £${minPrice.toFixed(2)}`;
+        statusEl.style.backgroundColor = '#fdecea';
+        statusEl.style.color = '#7f1d1d';
+      }
+    };
+
+    // --- Navigation ---
+    function switchPage(pageId) {
+      const pages = document.querySelectorAll('.page');
+      pages.forEach(p => {
+        if (p.id === pageId) {
+          p.classList.add('active');
+          setTimeout(() => p.classList.add('visible'), 50);
+        } else {
+          p.classList.remove('visible');
+          setTimeout(() => p.classList.remove('active'), 300);
+        }
+      });
+      
+      document.querySelectorAll('.nav-pill').forEach(pill => {
+        if (pill.dataset.target === pageId) pill.classList.add('active');
+        else pill.classList.remove('active');
+      });
+
+      document.querySelectorAll('.tab-item').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.id === 'tab-' + pageId.replace('page-', '')) {
+          tab.classList.add('active');
+        }
+      });
+
+      toggleDrawer(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- Drawer & API Key ---
+    function toggleDrawer(show) {
+      const overlay = document.getElementById('drawer-overlay');
+      const drawer = document.getElementById('drawer');
+      if (show) {
+        overlay.classList.add('visible');
+        drawer.classList.add('visible');
+        let key = localStorage.getItem('hbk_gemini_key');
+        try {
+          if (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) {
+            key = process.env.GEMINI_API_KEY;
+          } else if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+            key = process.env.API_KEY;
+          } else if (window.INJECTED_API_KEY && window.INJECTED_API_KEY !== 'undefined') {
+            key = window.INJECTED_API_KEY;
+          }
+        } catch (e) {}
+        document.getElementById('api-key-input').value = key || '';
+      } else {
+        overlay.classList.remove('visible');
+        drawer.classList.remove('visible');
+      }
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('api-key-input').value.trim();
+      if (key) {
+        localStorage.setItem('hbk_gemini_key', key);
+        updateApiStatus();
+        showToast('API Key saved successfully');
+        toggleDrawer(false);
+      } else {
+        localStorage.removeItem('hbk_gemini_key');
+        updateApiStatus();
+        showToast('API Key removed');
+      }
+    }
+
+    function updateApiStatus() {
+      let key = localStorage.getItem('hbk_gemini_key');
+      try {
+        if (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) {
+          key = process.env.GEMINI_API_KEY;
+        } else if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+          key = process.env.API_KEY;
+        } else if (window.INJECTED_API_KEY && window.INJECTED_API_KEY !== 'undefined') {
+          key = window.INJECTED_API_KEY;
+        }
+      } catch (e) {}
+      const defaultKeyPlaceholder = '';
+      const dot = document.getElementById('api-status-dot');
+      const text = document.getElementById('api-status-text');
+      if (key && key.trim() !== '') {
+        dot.className = 'dot green';
+        text.innerText = 'Connected';
+      } else {
+        dot.className = 'dot red';
+        text.innerText = 'Not set';
+      }
+    }
+
+    // --- Toasts ---
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerText = message;
+      container.appendChild(toast);
+      
+      setTimeout(() => toast.classList.add('visible'), 10);
+      setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // --- Auto Style Engine ---
+    const WORLD_CLASS_STYLES = [
+      {
+        name: "Golden Hour Feast",
+        description: "Warm 5000K–5500K natural sunlight hitting the dish from a low left angle, casting long soft shadows across a rich warm-toned wooden table. The food glows — golden, caramelized, glossy. Colors are amber, honey, terracotta, cream. White plates with subtle rim shadows. Green garnish pops against the warm tones. Feels like an outdoor meal on a perfect sunny afternoon. Shot at f/2.0, medium-close angle (45 degrees), Bokeh background of warm greenery or warm interior. Every fried edge, every sauce drip, every grain of rice is lit to look irresistible. Style reference: high-end Asian café menu photography, Bali outdoor dining."
+      },
+      {
+        name: "Warm Amber Studio",
+        description: "Studio setup mimicking late afternoon sun. Amber gel over the key light, hitting from the upper right at 45 degrees. Surface: aged honey-toned oak wood. The food takes on a warm golden cast — fried textures look extra crispy, sauces look richer and glossier. Background softly blurred into warm caramel tones. Shadows are soft and directional, never harsh. Color palette: burnt orange, golden yellow, warm white, deep brown. Appetite appeal is maximum — the viewer can almost feel the heat and smell the food."
+      },
+      {
+        name: "Sunlit Table Top",
+        description: "Overhead-angled shot (about 60 degrees) flooded with warm natural window light. Wooden surface with natural grain showing. Multiple dishes arranged in a natural feast layout — not perfectly symmetrical but intentionally balanced. Warm morning-to-midday light creates subtle lens flare and a glowing halo around the hero dish. Everything feels fresh, warm, and abundant. Color temperature: very warm (around 4800K). Think Bon Appétit summer issue cover. No cold tones anywhere — even the whites of the plates have a warm ivory cast."
+      },
+      {
+        name: "Honey Glaze Editorial",
+        description: "The food is the star. Extreme close-up or medium-close shot emphasizing every texture — crunch, gloss, steam, caramelization. Lighting: single warm key light from the side creating dramatic texture shadows on every ridge and crisp surface. Background: blurred warm wood or warm dark surface. Sauce or glaze on the food catches the light and gleams like liquid gold. Garnishes (sesame seeds, chili, herbs) are sharp and vivid. Color grade: lifted shadows, warm mids, slightly desaturated cool tones, boosted oranges and yellows. The image should make you reach through the screen."
+      },
+      {
+        name: "Outdoor Golden Feast",
+        description: "Natural outdoor or semi-outdoor setting. Bright but not harsh sunlight, partially filtered through leaves or a canopy creating dappled warm light. Warm wooden table, white or cream plates, fresh colorful garnishes. The background has bokeh of warm greens and golds. The overall palette is: golden yellow, warm orange, fresh green, cream white, honey brown. Multiple dishes in frame feel like an abundant home-cooked spread. Photography style: lifestyle editorial, authentic, joyful, warm. Like eating in a beautiful garden on a summer afternoon."
+      },
+      {
+        name: "Cinematic Warm Dusk",
+        description: "Late golden hour, 30 minutes before sunset. The light is orange-red and directional, casting the longest warmest shadows. The food glows as if lit from within. Surface: dark warm wood, making the bright food pop dramatically. Color grade: cinematic — rich shadows, glowing highlights, warm mid-tones. Slight film grain for texture. Everything feels emotional and cinematic — like the hero shot of a food documentary. Appetite appeal: extreme. The warmth makes the food feel comforting, homemade, and deeply satisfying."
+      },
+      {
+        name: "Home Kitchen Warmth",
+        description: "The warmth of a real home kitchen — but elevated. Natural light from a nearby window, warm tones throughout. Surface: wooden chopping board or warm-toned marble. The food looks freshly made — steam, gloss, perfect plating but not overly staged. Props: a small bowl of spices, a fold of linen, a wooden spoon nearby. Everything feels real, warm, and deeply inviting. Color temperature: 4500K warm. Color palette: all warm — no cold blues, no grey tones. This is food that feels made with love."
+      },
+      {
+        name: "Rich Terracotta Editorial",
+        description: "Bold, warm, maximalist. Terracotta and rust-toned surfaces, warm ceramic plates, abundant garnishes. The key light is warm and slightly overhead, creating rich texture highlights. Background: warm blurred tones of rust, amber, and deep brown. The food itself is the brightest element in the frame — gleaming, textured, abundant. Color grade: high saturation on warm tones (oranges, reds, yellows), slightly muted cool tones. Feels like a luxury Mediterranean or Middle Eastern food brand editorial. Every element in frame contributes to a feast of color and appetite."
+      }
+    ];
+
+    function updateAutoStyleUI() {
+      const zoneRef = document.getElementById('zone-ref');
+      const icon = zoneRef.querySelector('.upload-icon');
+      const label = zoneRef.querySelector('.upload-label');
+      const sublabel = zoneRef.querySelector('.upload-sublabel');
+      const badge = document.getElementById('auto-style-badge');
+
+      if (!refBase64) {
+        zoneRef.classList.add('auto-style-active');
+        icon.innerHTML = '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'; // Magic wand placeholder, will replace with proper SVG
+        icon.innerHTML = '<path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="6.5"/>'; // Better wand
+        icon.style.color = 'var(--primary-orange)';
+        label.innerText = 'Style Reference';
+        sublabel.innerText = 'Leave empty to activate World Class Auto Style';
+        if (dishBase64) {
+           // We don't show the badge until generation, or we show it when dish is uploaded?
+           // "Appears with a fade-in animation when a dish photo is uploaded and no reference is present."
+           // But we don't know the style yet until generation. Wait, the prompt says:
+           // "Randomly select one style... on every generation"
+           // "Show the selected style name to the user as a small badge below the Generate button before/during generation"
+           // Let's show it during generation, or pick one when dish is uploaded.
+           // Let's pick it during generation.
+        }
+      } else {
+        zoneRef.classList.remove('auto-style-active');
+        icon.innerHTML = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>';
+        icon.style.color = 'var(--gray-2)';
+        label.innerText = 'Upload style reference';
+        sublabel.innerText = 'Optional — mood, lighting, aesthetic';
+        badge.style.opacity = '0';
+        setTimeout(() => badge.style.display = 'none', 500);
+      }
+    }
+
+    // --- AI Studio UI Logic ---
+    function setFormat(format) {
+      currentFormat = format;
+      
+      // Update Segmented Control
+      document.querySelectorAll('.segment').forEach(seg => {
+        if (seg.dataset.format === format) seg.classList.add('active');
+        else seg.classList.remove('active');
+      });
+
+      // Update old format-btn if they still exist anywhere
+      document.querySelectorAll('.format-btn').forEach(btn => {
+        if (btn.dataset.format === format) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      
+      const container = document.getElementById('output-container');
+      if (format === '1:1') container.style.aspectRatio = '1 / 1';
+      if (format === '3:4') container.style.aspectRatio = '3 / 4';
+      if (format === '9:16') container.style.aspectRatio = '9 / 16';
+    }
+
+    function toggleBrand() {
+      brandEnabled = !brandEnabled;
+      const toggle = document.getElementById('brand-toggle');
+      const panel = document.getElementById('brand-panel');
+      if (brandEnabled) {
+        toggle.classList.add('on');
+        panel.classList.add('visible');
+      } else {
+        toggle.classList.remove('on');
+        panel.classList.remove('visible');
+      }
+    }
+
+    function setPos(pos) {
+      brandPos = pos;
+      document.querySelectorAll('#pos-group .pill-btn').forEach(btn => {
+        if (btn.dataset.pos === pos) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+
+    function setQuality(q) {
+      document.querySelectorAll('#quality-group .pill-btn').forEach(btn => {
+        if (btn.dataset.quality === q) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+
+    // --- File Uploads ---
+    function handleFileUpload(inputId, previewId, clearId, type) {
+      const input = document.getElementById(inputId);
+      input.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (file.size > 4 * 1024 * 1024) {
+          showToast('Image is too large. Please compress it below 4MB.');
+          input.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const base64 = event.target.result;
+          if (type === 'dish') {
+            dishBase64 = base64;
+            updateAutoStyleUI();
+          }
+          if (type === 'ref') {
+            refBase64 = base64;
+            updateAutoStyleUI();
+          }
+          
+          const preview = document.getElementById(previewId);
+          preview.src = base64;
+          preview.style.display = 'block';
+          document.getElementById(clearId).style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    handleFileUpload('input-dish', 'preview-dish', 'clear-dish', 'dish');
+    handleFileUpload('input-ref', 'preview-ref', 'clear-ref', 'ref');
+    updateAutoStyleUI(); // Initialize UI
+
+    function clearUpload(type, e) {
+      e.stopPropagation();
+      e.preventDefault();
+      if (type === 'dish') {
+        dishBase64 = null;
+        document.getElementById('input-dish').value = '';
+        document.getElementById('preview-dish').style.display = 'none';
+        document.getElementById('clear-dish').style.display = 'none';
+        updateAutoStyleUI();
+      } else {
+        refBase64 = null;
+        document.getElementById('input-ref').value = '';
+        document.getElementById('preview-ref').style.display = 'none';
+        document.getElementById('clear-ref').style.display = 'none';
+        updateAutoStyleUI();
+      }
+    }
+
+    // --- Gemini API Call ---
+    async function generateImage() {
+      const output = document.getElementById('output-container');
+      const placeholder = document.getElementById('output-placeholder');
+      const btn = document.getElementById('gen-btn') || document.getElementById('btn-generate');
+      
+      if (window.aistudio) {
+        if (!(await window.aistudio.hasSelectedApiKey())) {
+          await window.aistudio.openSelectKey();
+        }
+      }
+
+      if (!dishBase64) {
+        const btnGen = document.getElementById('btn-generate');
+        btnGen.classList.add('shake');
+        setTimeout(() => btnGen.classList.remove('shake'), 300);
+        showToast('Please upload a dish photo first.');
+        return;
+      }
+
+      // Premium Skeleton State
+      output.innerHTML = `
+        <div class="skeleton" style="width:100%; aspect-ratio:1; border-radius:12px; margin-bottom:16px;"></div>
+        <div class="skeleton" style="width:60%; height:20px; border-radius:4px; margin-bottom:8px;"></div>
+        <div class="skeleton" style="width:40%; height:14px; border-radius:4px;"></div>
+      `;
+      placeholder.style.display = 'none';
+
+      let apiKey = localStorage.getItem('hbk_gemini_key');
+      try {
+        if (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) {
+          apiKey = process.env.GEMINI_API_KEY;
+        } else if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+          apiKey = process.env.API_KEY;
+        } else if (window.INJECTED_API_KEY && window.INJECTED_API_KEY !== 'undefined') {
+          apiKey = window.INJECTED_API_KEY;
+        }
+      } catch (e) {}
+      
+      if (!apiKey || apiKey.trim() === '') {
+        showToast('Check your API key in settings ⚙');
+        toggleDrawer(true);
+        return;
+      }
+
+      const spinner = document.getElementById('gen-spinner');
+      const text = document.getElementById('gen-text');
+      
+      btn.disabled = true;
+      if (spinner) spinner.style.display = 'block';
+      if (text) text.innerText = 'Crafting your image...';
+
+      const userPrompt = document.getElementById('prompt-input').value.trim();
+      let formatText = "1:1 square";
+      if(currentFormat === '3:4') formatText = "3:4 portrait";
+      if(currentFormat === '9:16') formatText = "9:16 vertical story";
+
+      let styleDirective = "";
+      const badge = document.getElementById('auto-style-badge');
+      const badgeName = document.getElementById('auto-style-name');
+
+      if (!refBase64) {
+        const randomStyle = WORLD_CLASS_STYLES[Math.floor(Math.random() * WORLD_CLASS_STYLES.length)];
+        badgeName.innerText = randomStyle.name;
+        badge.style.display = 'block';
+        setTimeout(() => badge.style.opacity = '1', 10);
+        
+        styleDirective = `
+STYLE DIRECTIVE (Auto-selected — World Class Mode):
+Apply the following photography style with absolute precision and mastery:
+
+${randomStyle.description}
+
+Additional rules for world-class output:
+- The dish must look more appetizing than any photo the user has ever seen of this food.
+- Every texture must be visible and irresistible: crispy, glossy, steaming, layered, dripping.
+- Lighting is the soul of the image — it must have depth, drama, and intention.
+- The composition must feel like it was art-directed by a James Beard Award-winning food stylist.
+- Color grade must be cohesive — no flat or washed-out tones.
+- No generic white backgrounds unless the style explicitly calls for it.
+- Add subtle environmental storytelling: a pinch of spice beside the dish, a fold in the cloth, condensation on a glass.`;
+      } else {
+        styleDirective = `
+2. If a style reference image is provided, extract its: lighting mood, color temperature, background texture, composition angle, and depth of field. Apply all of these to your output.
+4. Lighting must be dramatic and intentional — warm, golden, or moody depending on the reference.
+5. The background should feel styled and contextual (wooden table, marble surface, linen cloth, etc.)
+7. The aesthetic should feel consistent with a warm, bold, approachable home-cooking brand (Home Bite Kitchen).`;
+      }
+
+      const systemPrompt = `You are the official AI image stylist for Home Bite Kitchen — a premium home food brand.
+Your role: transform dish photos into professional, Instagram-ready food photography.
+
+Instructions:
+1. Examine the dish photo carefully. Identify the food, colors, plating, and textures.
+${styleDirective}
+3. Generate a photorealistic, magazine-quality food photograph of the same dish.
+6. The hero of every image is the food itself — it must look irresistible.
+8. Output ONLY the final styled image. No text overlays, no borders, no watermarks.
+9. Ensure the image is composed for a ${formatText} aspect ratio.
+Additional style instruction from user: ${userPrompt}
+
+UNIVERSAL QUALITY MANDATE:
+This image will be published on Instagram for a professional food brand.
+It must meet the standard of: Ottolenghi cookbook photography + Noma plating + 
+Bon Appétit editorial lighting + a James Beard award-winning food stylist's eye.
+Output only the final image. No text. No borders. No white frames. 
+The image must make the viewer immediately hungry.
+
+COLOR TEMPERATURE MANDATE:
+The image must be warm. No cold, blue, or grey tones anywhere in the frame.
+Color temperature minimum 4500K. Boost oranges, yellows, ambers, and golden tones.
+The food must glow like it's lit by the sun or a warm studio light.
+Think: honey, caramel, terracotta, golden cream — not clinical white or cool grey.
+
+COMPOSITION & DISTANCE MANDATE:
+
+Camera Angle:
+- Never shoot too close or fill the entire frame with the dish alone.
+- Use a medium shot at 35–50 degree angle (not flat overhead, not straight-on eye level).
+- The ideal angle: slightly elevated, looking down at the dish with the table surface visible 
+  in front of the dish — this creates depth, dimension, and a natural dining perspective.
+- Leave deliberate negative space around the dish — at least 25–35% of the frame 
+  should be the surface/environment, not the food itself.
+- This breathing room makes the dish feel confident and premium, not crowded.
+
+Composition Rules:
+- Place the hero dish slightly off-center (rule of thirds — upper-left or upper-right zone).
+- If multiple items exist (side dish, drink, garnish props), scatter them naturally 
+  in the remaining frame — never stacked or overlapping the hero.
+- The table surface must be visible and beautiful — warm wood grain, linen, marble — 
+  it is part of the composition, not just a background.
+- Props (napkin fold, wooden spoon, scattered spice, small bowl) should appear 
+  in the negative space to fill the frame with storytelling, not emptiness.
+- Foreground blur: if there is a table edge or a prop in the very front of frame, 
+  let it be slightly soft/blurred — this creates cinematic depth layers:
+  [blurred foreground prop] → [sharp hero dish] → [softly blurred background environment]
+
+Brand Color Integration (organic, never forced):
+- The Home Bite Kitchen primary orange (#f47c2c) must appear ONCE naturally in the scene.
+- It should feel like it belongs — not like a filter or overlay.
+- Achieve it through ONE of these natural methods (choose whichever fits the dish):
+    a) A warm orange ceramic bowl or plate as a side prop in the background
+    b) A squeeze of sauce or chili oil with an orange-amber glaze catching the light
+    c) A sliced orange, apricot, or carrot as a garnish element
+    d) Warm orange ambient light reflecting off the table surface near the dish
+    e) A terracotta cup or vessel in the background holding a drink or utensil
+- The orange must feel earned and contextual — a viewer should NOT notice it 
+  as a brand color, they should just feel the warmth and cohesion of the image.
+- The overall color palette must remain warm (as per Amendment 2) with this 
+  orange element anchoring the brand identity subtly.
+
+What to NEVER do:
+- Never fill the frame edge-to-edge with food.
+- Never shoot perfectly flat (90 degree top-down) unless the style explicitly requires it.
+- Never place the dish dead-center like a passport photo.
+- Never use cold, clinical, or sterile environments.
+- Never add a digital orange overlay, badge, or border to inject the brand color — 
+  it must live inside the scene organically.`;
+
+      const parts = [
+        { text: systemPrompt },
+        { inline_data: { mime_type: "image/jpeg", data: dishBase64.split(',')[1] } }
+      ];
+
+      if (refBase64) {
+        parts.push({ inline_data: { mime_type: "image/jpeg", data: refBase64.split(',')[1] } });
+      }
+
+      const payload = {
+        contents: [{ parts: parts }],
+        generationConfig: {
+          temperature: 0.8,
+          imageConfig: {
+            aspectRatio: currentFormat
+          }
+        }
+      };
+
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error?.message || 'API Error');
+        }
+
+        let base64Image = null;
+        if (data.candidates && data.candidates[0].content.parts) {
+          const parts = data.candidates[0].content.parts;
+          for (const p of parts) {
+            if (p.inlineData && p.inlineData.mimeType.startsWith('image/')) {
+              base64Image = `data:${p.inlineData.mimeType};base64,${p.inlineData.data}`;
+              break;
+            }
+          }
+        }
+
+        if (base64Image) {
+          generatedImageBase64 = base64Image;
+          await applyWatermarkAndDisplay(base64Image);
+        } else {
+          showToast('Gemini returned a text response. Try rephrasing your style prompt.');
+        }
+
+      } catch (error) {
+        console.error(error);
+        if (error.message.includes('API_KEY_INVALID')) {
+          showToast('Invalid API key. Check your settings ⚙');
+        } else {
+          showToast('Connection failed. Check your internet and try again.');
+        }
+      } finally {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        text.innerText = 'Generate Image →';
+      }
+    }
+
+    // --- Watermarking ---
+    async function applyWatermarkAndDisplay(base64Src) {
+      const img = new Image();
+      img.onload = () => {
+        let targetW = 1080;
+        let targetH = 1080;
+        if (currentFormat === '3:4') targetH = 1440;
+        if (currentFormat === '9:16') targetH = 1920;
+
+        const canvas = document.getElementById('watermark-canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+
+        // Draw image (cover)
+        const scale = Math.max(targetW / img.width, targetH / img.height);
+        const x = (targetW / 2) - (img.width / 2) * scale;
+        const y = (targetH / 2) - (img.height / 2) * scale;
+        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+        // Apply watermark if enabled
+        if (brandEnabled) {
+          const tagline = document.getElementById('brand-tagline').value || 'Home Bite Kitchen';
+          const opacity = document.getElementById('brand-opacity').value / 100;
+          
+          ctx.font = 'bold 32px Satoshi, sans-serif';
+          const textMetrics = ctx.measureText(tagline);
+          const textWidth = textMetrics.width;
+          const paddingX = 24;
+          const paddingY = 16;
+          const pillW = textWidth + (paddingX * 2);
+          const pillH = 64;
+          
+          let px, py;
+          const margin = 40;
+          
+          if (brandPos === 'bottom-left') {
+            px = margin;
+            py = targetH - margin - pillH;
+          } else if (brandPos === 'bottom-right') {
+            px = targetW - margin - pillW;
+            py = targetH - margin - pillH;
+          } else {
+            px = (targetW - pillW) / 2;
+            py = targetH - margin - pillH;
+          }
+
+          // Draw pill
+          ctx.globalAlpha = opacity;
+          ctx.fillStyle = '#f47c2c';
+          ctx.beginPath();
+          ctx.roundRect(px, py, pillW, pillH, pillH/2);
+          ctx.fill();
+
+          // Draw text
+          ctx.globalAlpha = Math.min(1, opacity + 0.4); // make text slightly more visible
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(tagline, px + pillW/2, py + pillH/2 + 2);
+          
+          ctx.globalAlpha = 1.0;
+        }
+
+        const finalDataUrl = canvas.toDataURL('image/png');
+        document.getElementById('output-img').src = finalDataUrl;
+        
+        let formatLabel = "1:1 Post";
+        if(currentFormat === '3:4') formatLabel = "3:4 Portrait";
+        if(currentFormat === '9:16') formatLabel = "9:16 Story";
+        document.getElementById('output-badge').innerText = formatLabel;
+        
+        document.getElementById('output-section').classList.add('visible');
+        document.getElementById('veo-btn').style.display = 'flex';
+        
+        // Scroll to output
+        setTimeout(() => {
+          document.getElementById('output-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      };
+      img.src = base64Src;
+    }
+
+    function downloadImage() {
+      const img = document.getElementById('output-img');
+      if (!img.src) return;
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.download = `home-bite-kitchen-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // --- Cost Calculator ---
+    let ingredients = [
+      { name: 'Flour', grams: 500, pricePerKg: 1.20 }
+    ];
+
+    function renderIngredients() {
+      const tbody = document.getElementById('ingredients-body');
+      tbody.innerHTML = '';
+      if (ingredients.length === 0) {
+        tbody.innerHTML = '<div style="text-align:center; color:var(--gray-3); padding:20px; font-size:13px;">No ingredients added yet.</div>';
+        calculateCosts();
+        return;
+      }
+      ingredients.forEach((ing, index) => {
+        const cost = (ing.grams / 1000) * ing.pricePerKg;
+        const row = document.createElement('div');
+        row.style = "display: flex; gap: 8px; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 12px;";
+        row.innerHTML = `
+          <div style="flex:2;">
+            <input type="text" value="${ing.name}" placeholder="Ingredient" onchange="updateIng(${index}, 'name', this.value)" style="width:100%; border:none; background:#f9f9f9; padding:8px; border-radius:8px; font-size:14px;">
+          </div>
+          <div style="flex:1; position:relative;">
+            <input type="number" value="${ing.grams}" min="0" oninput="updateIng(${index}, 'grams', this.value)" style="width:100%; border:none; background:#f9f9f9; padding:8px 24px 8px 8px; border-radius:8px; font-size:14px; text-align:right;">
+            <span style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:10px; color:var(--gray-3);">g</span>
+          </div>
+          <div style="flex:1; position:relative;">
+            <span style="position:absolute; left:6px; top:50%; transform:translateY(-50%); font-size:10px; color:var(--gray-3);">£</span>
+            <input type="number" value="${ing.pricePerKg}" min="0" step="0.1" oninput="updateIng(${index}, 'pricePerKg', this.value)" style="width:100%; border:none; background:#f9f9f9; padding:8px 8px 8px 16px; border-radius:8px; font-size:14px; text-align:right;">
+          </div>
+          <div style="width:50px; text-align:right; font-weight:600; font-size:13px;">
+            £${cost.toFixed(2)}
+          </div>
+          <button onclick="deleteIng(${index})" style="background:none; border:none; color:#ff4d4f; font-size:18px; padding:0 4px;">×</button>
+        `;
+        tbody.appendChild(row);
+      });
+      calculateCosts();
+    }
+
+    function addIngredientRow() {
+      ingredients.push({ name: '', grams: 0, pricePerKg: 0 });
+      renderIngredients();
+    }
+
+    function updateIng(index, field, value) {
+      if (field === 'name') ingredients[index][field] = value;
+      else ingredients[index][field] = parseFloat(value) || 0;
+      renderIngredients();
+    }
+
+    function deleteIng(index) {
+      ingredients.splice(index, 1);
+      renderIngredients();
+    }
+
+    function updateSellPrice() {
+      const val = document.getElementById('sell-price').value;
+      document.getElementById('sell-price-display').innerText = `£${parseFloat(val).toFixed(2)}`;
+      calculateCosts();
+    }
+
+    function calculateCosts() {
+      const ingCost = ingredients.reduce((sum, ing) => sum + ((ing.grams / 1000) * ing.pricePerKg), 0);
+      
+      const pkg = parseFloat(document.getElementById('cost-packaging').value) || 0;
+      const nrg = parseFloat(document.getElementById('cost-energy').value) || 0;
+      const del = parseFloat(document.getElementById('cost-delivery').value) || 0;
+      const time = parseFloat(document.getElementById('cost-time').value) || 0;
+      const fixedCost = pkg + nrg + del + time;
+      
+      const totalCost = ingCost + fixedCost;
+      const sellPrice = parseFloat(document.getElementById('sell-price').value) || 0;
+      const profit = sellPrice - totalCost;
+      const ratio = sellPrice > 0 ? (totalCost / sellPrice) * 100 : 0;
+
+      document.getElementById('res-ingredients').innerText = `£${ingCost.toFixed(2)}`;
+      document.getElementById('res-fixed').innerText = `£${fixedCost.toFixed(2)}`;
+      document.getElementById('res-total').innerText = `£${totalCost.toFixed(2)}`;
+      
+      const profitEl = document.getElementById('res-profit');
+      profitEl.innerText = `£${profit.toFixed(2)}`;
+      if (profit >= 0) {
+        profitEl.className = 'result-value text-black text-green';
+      } else {
+        profitEl.className = 'result-value text-black text-red';
+      }
+
+      // Update Ratio Bar
+      const fill = document.getElementById('ratio-fill');
+      const label = document.getElementById('ratio-label');
+      const msg = document.getElementById('status-msg');
+      
+      let ratioClamped = Math.min(ratio, 100);
+      fill.style.width = `${ratioClamped}%`;
+      label.innerText = `${ratio.toFixed(1)}%`;
+
+      if (ratio <= 40) {
+        fill.style.backgroundColor = 'var(--green-accent)';
+        label.style.color = 'var(--green-accent)';
+        msg.className = 'status-message status-good';
+        msg.innerText = 'Excellent — healthy profit margin. Keep it up.';
+      } else if (ratio <= 60) {
+        fill.style.backgroundColor = 'var(--primary-orange)';
+        label.style.color = 'var(--primary-orange)';
+        msg.className = 'status-message status-ok';
+        msg.innerText = 'Acceptable — but tight. Try raising your price or cutting costs.';
+      } else {
+        fill.style.backgroundColor = 'var(--red-warning)';
+        label.style.color = 'var(--red-warning)';
+        msg.className = 'status-message status-bad';
+        msg.innerText = 'Warning — you\'re barely breaking even. Reprice immediately.';
+      }
+    }
+
+    // --- Veo 3 Animation Engine ---
+    var veoPollInterval = null;
+    var veoTimerInterval = null;
+    var veoStartTime = 0;
+    var VEO_MESSAGES = [
+      "Analysing your dish...",
+      "Crafting the motion...",
+      "Adding warmth and depth...",
+      "Almost ready...",
+      "Finalising your video..."
+    ];
+
+    function buildAnimationPrompt(styleName) {
+      return `
+Cinematic food photography animation. The camera begins completely still.
+
+Movement (begin after 0.5 seconds of stillness):
+- Extremely slow, imperceptible dolly-in: the camera moves forward by only 3–5% 
+  of the frame over the entire 8 seconds. The viewer feels pulled in, not pushed.
+- Simultaneously: a very gentle, barely-noticeable camera tilt upward (1–2 degrees total).
+- The overall motion must feel like breathing — alive but completely calm.
+
+Environment animation (subtle, natural, non-distracting):
+- If steam is visible on the dish: let it rise slowly and organically, wisping upward.
+- If there is a sauce or glaze on the food: a single slow drip or shimmer of light 
+  catching the gloss — one moment, not looping.
+- If there are herbs or garnish: the faintest, lightest breath of air causes 
+  one gentle micro-movement — barely perceptible.
+- Ambient light: a soft, slow pulse of warmth — as if clouds are passing outside 
+  a window, causing the golden light to breathe very gently (±5% brightness, 
+  over 4–5 second cycle).
+- If there is a background or bokeh: let it shift imperceptibly, as if the world 
+  behind the dish is alive and breathing.
+
+What must NEVER happen:
+- No zoom that feels like zoom. The scale change must be undetectable until compared 
+  to the first frame.
+- No camera shake, wobble, or handheld feel.
+- No fast movement of any kind.
+- No elements entering or leaving the frame.
+- No text animation, no overlays, no transitions.
+- The dish itself must remain perfectly sharp and still throughout.
+- No flickering light. No strobe. No sudden brightness changes.
+
+The final result must feel like: you are standing in front of this meal, 
+the world is calm, and you are about to take the first bite.
+Warmth. Stillness. Appetite. Calm.
+
+Photography style context: ${styleName}
+Home Bite Kitchen — warm, bold, homemade but elevated.
+      `;
+    }
+
+    function updateVeoTimer() {
+      const elapsed = Math.floor((Date.now() - veoStartTime) / 1000);
+      const mins = Math.floor(elapsed / 60);
+      const secs = (elapsed % 60).toString().padStart(2, '0');
+      document.getElementById('veo-timer').innerText = `${mins}:${secs}`;
+    }
+
+    function cancelVeo() {
+      if (veoPollInterval) clearInterval(veoPollInterval);
+      if (veoTimerInterval) clearInterval(veoTimerInterval);
+      if (window.msgInterval) clearInterval(window.msgInterval);
+      veoPollInterval = null;
+      veoTimerInterval = null;
+      window.msgInterval = null;
+      document.getElementById('veo-progress-card').style.display = 'none';
+      document.getElementById('veo-btn').style.display = 'flex';
+      document.getElementById('veo-status').innerText = VEO_MESSAGES[0];
+    }
+
+    function showVideo(videoUrl) {
+      document.getElementById('veo-progress-card').style.display = 'none';
+      document.getElementById('veo-btn').style.display = 'flex';
+      document.getElementById('veo-output-section').style.display = 'flex';
+      
+      const videoEl = document.getElementById('veo-video');
+      videoEl.src = videoUrl;
+      
+      setTimeout(() => {
+        document.getElementById('veo-output-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+
+    function toggleVeoPlay() {
+      const videoEl = document.getElementById('veo-video');
+      const btn = document.getElementById('veo-play-btn');
+      if (videoEl.paused) {
+        videoEl.play();
+        btn.innerText = '⏸ Pause';
+      } else {
+        videoEl.pause();
+        btn.innerText = '▶ Play';
+      }
+    }
+
+    function toggleVeoLoop() {
+      const videoEl = document.getElementById('veo-video');
+      const btn = document.getElementById('veo-loop-btn');
+      videoEl.loop = !videoEl.loop;
+      btn.style.background = videoEl.loop ? '#fff3e8' : '#fff';
+    }
+
+    function downloadVeo() {
+      const videoEl = document.getElementById('veo-video');
+      if (!videoEl.src) return;
+      const a = document.createElement('a');
+      a.href = videoEl.src;
+      a.download = `home-bite-kitchen-motion-${Date.now()}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // Init
+    async function initApp() {
+      if (window.aistudio) {
+        if (!(await window.aistudio.hasSelectedApiKey())) {
+          await window.aistudio.openSelectKey();
+        }
+      }
+      updateApiStatus();
+      renderIngredients();
+      setFormat('1:1');
+    }
+    
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
