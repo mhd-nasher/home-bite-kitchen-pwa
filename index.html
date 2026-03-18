@@ -1263,7 +1263,12 @@
       <div class="output-section" id="output-section">
         <div class="format-badge text-bold" id="output-badge">1:1 Post</div>
         <div class="output-image-container" id="output-container">
-          <img id="output-img" class="output-image" alt="Generated Image">
+          <div id="skeleton-overlay" style="display: none; width: 100%;">
+            <div class="skeleton" style="width:100%; aspect-ratio:1; border-radius:12px; margin-bottom:16px;"></div>
+            <div class="skeleton" style="width:60%; height:20px; border-radius:4px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="width:40%; height:14px; border-radius:4px;"></div>
+          </div>
+          <img id="output-img" class="output-image" alt="Generated Image" style="display: none;">
         </div>
         <div class="output-actions">
           <button class="btn-download text-bold" onclick="downloadImage()">Download</button>
@@ -2072,13 +2077,11 @@
 
       // Premium Skeleton State
       if (outputSection) outputSection.style.display = 'block';
-      if (output) {
-        output.innerHTML = `
-          <div class="skeleton" style="width:100%; aspect-ratio:1; border-radius:12px; margin-bottom:16px;"></div>
-          <div class="skeleton" style="width:60%; height:20px; border-radius:4px; margin-bottom:8px;"></div>
-          <div class="skeleton" style="width:40%; height:14px; border-radius:4px;"></div>
-        `;
-      }
+      const skeleton = document.getElementById('skeleton-overlay');
+      const outImg = document.getElementById('output-img');
+      
+      if (skeleton) skeleton.style.display = 'block';
+      if (outImg) outImg.style.display = 'none';
       if (placeholder) placeholder.style.display = 'none';
 
       let apiKey = localStorage.getItem('hbk_gemini_key');
@@ -2341,15 +2344,26 @@ What to NEVER do:
         }
 
         const finalDataUrl = canvas.toDataURL('image/png');
-        document.getElementById('output-img').src = finalDataUrl;
+        const outImg = document.getElementById('output-img');
+        const skeleton = document.getElementById('skeleton-overlay');
         
-        let formatLabel = "1:1 Post";
-        if(currentFormat === '3:4') formatLabel = "3:4 Portrait";
-        if(currentFormat === '9:16') formatLabel = "9:16 Story";
-        document.getElementById('output-badge').innerText = formatLabel;
+        if (outImg) {
+          outImg.src = finalDataUrl;
+          outImg.style.display = 'block';
+        }
+        if (skeleton) skeleton.style.display = 'none';
         
-        document.getElementById('output-section').classList.add('visible');
-        document.getElementById('veo-btn').style.display = 'flex';
+        let formatLabel = "1:Post 1:1";
+        if(currentFormat === '3:4') formatLabel = "Portrait 3:4";
+        if(currentFormat === '9:16') formatLabel = "Story 9:16";
+        const badge = document.getElementById('output-badge');
+        if (badge) badge.innerText = formatLabel;
+        
+        const outSection = document.getElementById('output-section');
+        if (outSection) outSection.style.display = 'block';
+        
+        const veoBtn = document.getElementById('veo-btn');
+        if (veoBtn) veoBtn.style.display = 'flex';
         
         // Scroll to output
         setTimeout(() => {
